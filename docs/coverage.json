@@ -1,0 +1,45 @@
+{
+  "coverage": "85.14%",
+  "expectCount": 175,
+  "actualCount": 149,
+  "files": {
+    "src/builder.js": {
+      "expectCount": 163,
+      "actualCount": 149,
+      "undocumentLines": [
+        25,
+        29,
+        49,
+        56,
+        57,
+        71,
+        78,
+        83,
+        90,
+        102,
+        250,
+        456,
+        569,
+        1567
+      ]
+    },
+    "src/oracle.js": {
+      "expectCount": 12,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        17,
+        21,
+        23,
+        35,
+        43,
+        47,
+        55,
+        59,
+        61,
+        65,
+        80
+      ]
+    }
+  }
+}

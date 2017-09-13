@@ -1,0 +1,27 @@
+{
+  "name": "xapi-statement-builder",
+  "version": "1.0.0",
+  "description": "A library for constructing Experience API Statements",
+  "main": "dist/xapi-statement-builder.js",
+  "module": "src/index.js",
+  "author": "Russell Duhon <fugu13@gmail.com>",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "webpack",
+    "test": "mocha --compilers js:babel-register"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.24.1",
+    "esdoc": "^1.0.2",
+    "esdoc-standard-plugin": "^1.0.0",
+    "jsverify": "^0.8.2",
+    "mocha": "^3.5.0",
+    "webpack": "^3.5.2"
+  },
+  "dependencies": {
+    "immutable": "^3.8.1",
+    "lodash": "^4.17.4"
+  }
+}
