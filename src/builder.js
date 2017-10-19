@@ -1,5 +1,7 @@
-import { Record, Map, List, fromJS } from 'immutable';
+import { Record, Map, List, fromJS, Set } from 'immutable';
 import uuidv1 from 'uuid/v1';
+import * as _ from "lodash";
+import jsonpath from "jsonpath";
 
 import { uriOracle, CompositeOracle, ProfileOracle } from './oracle';
 
@@ -22,10 +24,16 @@ import { uriOracle, CompositeOracle, ProfileOracle } from './oracle';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+/**
+* @ignore
+*/
 function capitalize(s) {
     return s[0].toUpperCase() + s.slice(1);
 }
 
+/**
+* @ignore
+*/
 function adapt(concept) { // concept must be immutable Map
     switch(concept.type) {
         case 'Activity':
@@ -46,47 +54,96 @@ function adapt(concept) { // concept must be immutable Map
     }
 }
 
+/**
+* @ignore
+*/
 const _BuilderRecord = Record({
     map: Map(),
     instanceIdentifier: null,  // contract: must be UUID
     oracle: new CompositeOracle().add(uriOracle)
 });
 
-
+/**
+* The base class of most of the library, this provides a few utility data
+* structures and methods.
+*/
 class BuilderRecord extends _BuilderRecord {
+
+    /**
+    * Make an instance of a Builder
+    *
+    * Don't call BuilderRecord.builder directly. Generally, call
+    * {@link StatementBuilder#builder} then access all the other builders from that
+    * Builder, as {@link StatementBuilder#activities},
+    * {@link StatementBuilder#agents}, or {@link StatementBuilder#attachments}.
+    * @param {?Object} value A plain javascript Object to start the Builder with
+    * @return {*} A Builder of the type called on.
+    */
     static builder(value) {
         const record = new this().set('instanceIdentifier', uuidv1());
-        if(value instanceof BuilderRecord) {
+        if(value instanceof this) {
             // already a real one, just return it
             return value;
+        } else if(value instanceof BuilderRecord) {
+            // some other kind of Builder Record.
+            // NOTE: this is primarily to make SubStatements work right.
+            // Only pass builders to their subclasses.
+            return record.merge(value);
         } else if(value) {
-            return record.merge({
-                map: value
-            });
+            return record.merge(new Map({
+                map: new Map(value)
+            }));
         } else {
             return record;
         }
     }
 
+    /**
+    * @ignore
+    */
     validate(js) {
-        // TODO: implement this in Statements
-        // there doesn't seem to be a good JS xAPI validation library out there.
-        // make pluggable?
+        // TODO: implement this in subclasses
+        // there doesn't seem to be a good JS xAPI validation library out there,
+        // especially not with a suitable license.
+        // Also consider, should we make it pluggable?
         return;
     }
 
+    /**
+    * @ignore
+    */
     prebuild() {
         return this;
     }
 
-
+    /**
+    * Get the plain javascript object from this builder, ready to serialize
+    * into JSON
+    *
+    * Will throw an exception if the result does not validate (currently only
+    * xAPI Profile Statement Template validation occurs, not overall Statement
+    * validation).
+    * @return {Object} the plain javascript object constructed by this builder.
+    */
     build() {
         const js = this.prebuild().map.toJS();
-        // console.log("Built!", js);
         this.validate(js);
         return js;
     }
 
+    /**
+    * _Without validating_, get the plain javascript object from this builder,
+    * ready to serialize into JSON
+    *
+    * @return {Object} the plain javascript object constructed by this builder.
+    */
+    unsafeBuild() {
+        return this.prebuild().map.toJS();
+    }
+
+    /**
+    * @ignore
+    */
     lookup(identifier, objectType) {
         const found = this.oracle.lookup(identifier, objectType);
         if(found) {
@@ -97,8 +154,352 @@ class BuilderRecord extends _BuilderRecord {
     }
 }
 
+const [SUCCESS, PARTIAL, FAILURE] = [2,1,0]
 
 
+export class PatternRegistration extends BuilderRecord {
+
+    /**
+    * @ignore
+    */
+    static builder(profile_version, patterns, pattern) {
+        return super.builder({
+            profile_version,
+            patterns,
+            pattern: fromJS(pattern),
+            templates_so_far: []
+        });
+    }
+
+    /**
+    * @ignore
+    */
+    recordTemplate(template) {
+        this._checkNextMatch(template.id);
+        this.getIn(['map', 'templates_so_far']).push(template.id);
+    }
+
+    /**
+    * @ignore
+    */
+    _checkNextMatch(template) {
+        const sequence = [].concat(this.getIn(['map', 'templates_so_far']), template);
+        if(!this._sequencePossible(sequence, this.getIn(['map', 'pattern', 'id']))) {
+            throw new Error(`That template is not allowed next for the pattern ${this.getIn(['map', 'pattern', 'id'])}`);
+        }
+    }
+
+    /**
+    * @ignore
+    */
+    _sequencePossible(sequence, pattern) {
+        const {success, remaining} = this._matches(sequence, pattern);
+        switch(success) {
+            case SUCCESS:
+                return remaining.length == 0;
+            case PARTIAL:
+                return true;
+            case FAILURE:
+                return false;
+        }
+    }
+
+    /**
+    * @ignore
+    */
+    _matches(statements, element) {
+        const is_template = !this.hasIn(['map', 'patterns', element]);
+        if(is_template) {
+            if(statements.length == 0) {
+                return {
+                    success: PARTIAL,
+                    remaining: []
+                };
+            }
+            const [next, ...remaining] = statements;
+            if(next === element) {
+                return {
+                    success: SUCCESS,
+                    remaining
+                };
+            }
+            return {
+                success: FAILURE,
+                remaining: statements
+            };
+        }
+
+        const pattern = this.getIn(['map', 'patterns', element]);
+        if(pattern.has('sequence')) {
+            let [success, remaining] = [SUCCESS, statements];
+            for(let next of pattern.get('sequence')) {
+                ({success, remaining} = this._matches(remaining, next));
+                if(success === FAILURE) {
+                    return {
+                        success,
+                        remaining: statements
+                    }
+                }
+                if(success == PARTIAL) {
+                    return {
+                        success,
+                        remaining: []
+                    }
+                }
+            }
+            return {
+                success,
+                remaining
+            }
+        }
+        if(pattern.has('alternates')) {
+            let [success, remaining] = [FAILURE, statements];
+            for(let next of pattern.get('alternates')) {
+                const maybe = this._matches(statements, next);
+                if(maybe.success === SUCCESS) {
+                    success = SUCCESS;
+                    if(maybe.statements.length < remaining.length) {
+                        remaining = maybe.statements;
+                    }
+                }
+                if(maybe.success === PARTIAL && success === FAILURE) {
+                    success = PARTIAL
+                }
+            }
+            if(success === PARTIAL) {
+                return {
+                    success,
+                    remaining: []
+                };
+            }
+            return {
+                success,
+                remaining
+            };
+        }
+        if(pattern.has('oneOrMore')) {
+            let [success, remaining] = [FAILURE, statements];
+            let last_statements = remaining;
+            while(true) {
+                const maybe = this._matches(last_statements, pattern.get('oneOrMore'));
+                if(maybe.success === SUCCESS) {
+                    success = SUCCESS;
+                } else if(success === FAILURE && maybe.success === PARTIAL) {
+                    return {
+                        success: PARTIAL,
+                        remaining: []
+                    };
+                } else {
+                    if(maybe.success === PARTIAL && last_statements.length > 0) {
+                        return {
+                            success: PARTIAL,
+                            remaining: last_statements
+                        };
+                    } else {
+                        return {
+                            success,
+                            remaining: last_statements
+                        };
+                    }
+                }
+                if(remaining.length === last_statements.length) {
+                    return {
+                        success,
+                        remaining
+                    }
+                }
+                last_statements = remaining;
+            }
+        }
+        if(pattern.has('zeroOrMore')) {
+            let last_statements = statements;
+            while(true) {
+                const {success, remaining} = this._matches(last_statements, pattern.get('zeroOrMore'));
+                if(success === FAILURE) {
+                    return {
+                        success: SUCCESS,
+                        remaining: last_statements
+                    };
+                }
+                if(success === PARTIAL && remaining.length > 0) {
+                    return {
+                        success,
+                        remaining
+                    };
+                }
+                if(remaining.length === last_statements.length) {
+                    return {
+                        success: SUCCESS,
+                        remaining
+                    };
+                }
+                last_statements = remaining;
+            }
+        }
+        if(pattern.has('optional')) {
+            if(statements.length == 0) {
+                return {
+                    success: SUCCESS,
+                    remaining: []
+                };
+            }
+            let [success, remaining] = this._matches(statements, pattern.get('optional'));
+            if(success === SUCCESS || success === PARTIAL) {
+                return {
+                    success,
+                    remaining
+                };
+            } else {
+                return {
+                    success: SUCCESS,
+                    remaining: statements
+                };
+            }
+        }
+
+    }
+}
+
+/**
+* If you want to create Statements as parts of Patterns, start with a
+* ProfileRegistration, add Profiles using
+* {@link ProfileRegistration#withProfile}, create instances of Patterns with
+* {@link ProfileRegistration#pattern}, then create StatementBuilders that
+* follow Statement Templates with {@link ProfileRegistration#template}.
+*
+* @example
+* var registration = ProfileRegistration.builder().withProfile({
+*     ...profile object...
+* });
+*
+* var coursePattern = registration.pattern("Course Pattern");
+*
+* var launched = registration.template("Launching", coursePattern);
+*
+* launched = launched.with...
+* ...more additions to the StatementBuilder...
+*
+* my_send_statement_function(launched.build());
+*/
+export class ProfileRegistration extends BuilderRecord {
+
+    /**
+    * @ignore
+    */
+    withOracle(oracle) {
+        return this.update('oracle', (main) => main.add(oracle));
+    }
+
+    /**
+    * Add an xAPI Profile to enable referring to terms by name instead of URI
+    * with later API calls
+    *
+    * The Profiles added here will also be available to StatementBuilders
+    * returned from {@link ProfileRegistration#template}
+    * @param {Object} profile a complete xAPI Profile as a JSON object.
+    * @return {ProfileRegistration} returns the updated builder object. The
+    * original is unmodified.
+    */
+    withProfile(profile) {
+        const patterns = profile.patterns || [];
+        const current = [].concat(
+            profile.concepts || [], profile.templates || [], patterns
+        )[0].inScheme; // every concept, template, and patter must be inScheme
+        // of the current profile version
+        return this.withOracle(ProfileOracle.fromProfile(profile)).mergeDeepIn(
+            ['map', 'lookups'], {
+                profile_patterns: new Map(patterns.map(pattern =>
+                    [profile.id, new Map({[pattern.id]: fromJS(pattern)})])),
+                pattern_profiles: new Map(patterns.map(pattern =>
+                    [pattern.id, profile.id]
+                )),
+                current_versions: {
+                    [profile.id]: current
+                }
+            });
+    }
+
+    /**
+    * Make an opaque {@link PatternRegistration} object representing the Statements in
+    * one Pattern of a Profile
+    *
+    * Pass the {@link PatternRegistration} to
+    * {@link ProfileRegistration#template}.
+    * @param {string} name the name or id of a Pattern in a Profile
+    * registered with this object.
+    * @return {PatternRegistration} returns an opaque bookkeeping object.
+    * @throws {Error} if `name` does not match a name and is not uri-like.
+    */
+    pattern(name) {
+        const pattern = this.lookup(name, 'Pattern');
+        const profile = this.getIn(['map', 'lookups', 'pattern_profiles', pattern.id]);
+        // TODO missing value handling!
+        const patterns = this.getIn(['map', 'lookups', 'profile_patterns', profile])
+
+        // TODO okay, now need to work out the version of the profile...
+        const profile_version = this.getIn(['map', 'lookups', 'current_versions', profile]);
+        return PatternRegistration.builder(profile_version, patterns, pattern);
+    }
+
+    /**
+    * Make a {@link StatementBuilder} based on a Statement Template as part of
+    * an instance of a Pattern
+    *
+    * The returned Builder will validate itself on
+    * {@link StatementBuilder#build} against the requirements of the Statement
+    * Template. The StatementBuilder will be prefilled with a `registration`,
+    * a `subregistration` extension, and the profile version as a `context`
+    * `category`. Additionally, if the Statement Template has a `verb` or
+    * `objectActivityType`, the StatementBuilder will be prefilled with those
+    * as well (but not other determining properties).
+    * @param {string} name the name or id of a Statement Template in a Profile
+    * registered with this object.
+    * @param {PatternRegistration} pattern an opaque bookkeeping object.
+    * @param {Object|StatementBuilder} [base] a plain Javascript object or
+    * StatementBuilder to use as a base for the Statement.
+    * @return {StatementBuilder} the partially-completed Statement
+    * @throws {Error} if `name` does not match a name and is not uri-like, or if
+    * the chosen Statement Template cannot follow Statements produced
+    * from previous Statement Templates in the Pattern given.
+    */
+    template(name, pattern, base) {
+        const template = this.lookup(name, 'StatementTemplate');
+        pattern.recordTemplate(template);
+
+        const profile_id = pattern.map.get('profile_version');
+        return StatementBuilder.builder(
+            base
+        ).templated(
+            template
+        ).withRegistration(
+            this.instanceIdentifier
+        ).withContextExtension(
+            "https://w3id.org/xapi/profiles/extensions/subregistration",
+            [
+                {
+                    profile: profile_id,
+                    subregistration: pattern.instanceIdentifier
+                }
+            ]
+        ).withContextCategory(
+            ActivityBuilder.builder().withId(profile_id)
+        );
+        // TODO make it possible to provide multiples of name, pattern
+
+    }
+
+
+}
+
+/**
+* Use AgentBuilder to make Agents for use in your Statements, though you
+* mostly won't need to use it unless you're working with Groups. All non-member
+* Agents in Statements can be manipulated with StatementBuilder methods.
+*
+* When working with Statements you should generally get an AgentBuilder
+* instance by the {@link StatementBuilder#agents} property.
+*
+*/
 export class AgentBuilder extends BuilderRecord {
 
     /**
@@ -108,7 +509,7 @@ export class AgentBuilder extends BuilderRecord {
     * let builder = AgentBuilder.builder();
     * builder = builder.withEmail("nandita@example.gov");
     * console.log(builder.build());
-    * @param {?Object} value A plain javascript Agent or Group.
+    * @param {Object} [value] A plain javascript Agent or Group.
     * @return {AgentBuilder} A builder for xAPI Agents and Groups.
     */
     static builder(value) {
@@ -246,18 +647,32 @@ export class AgentBuilder extends BuilderRecord {
 
 }
 
-
+/**
+* Use ActivityBuilder to make Activities, particularly ones you
+* plan to put in `context`, since StatementBuilder does not provide methods
+* to update them directly.
+*
+* When working with Statements you should generally get an ActivityBuilder
+* instance by the {@link StatementBuilder#activities} property.
+*
+* @example
+* var statement = StatementBuilder.builder().withProfile(....);
+*
+* // values passed to withId are looked up in Profiles
+* var topic = StatementBuilder.activities.withId("Biology");
+*
+* statement = statement.withContextGrouping(topic);
+*
+* my_send_statement_function(statement.build());
+*/
 export class ActivityBuilder extends BuilderRecord {
 
     /**
     * Use `builder` to create instances of ActivityBuilder.
-    * @param {?Object} value A plain javascript Activity.
+    * @param {Object} [value] A plain javascript Activity.
     * @return {ActivityBuilder} A builder for xAPI Activities.
     */
     static builder(value) {
-        if(typeof value === 'string') {
-            value = this.lookup(value, 'Activity');
-        }
         return super.builder(value).setIn(['map', 'objectType'], "Activity");
     }
 
@@ -266,19 +681,41 @@ export class ActivityBuilder extends BuilderRecord {
     *
     * If the `id` is not a URI but matches a name of an Activity in a Profile
     * loaded by {@link StatementBuilder#withProfile}, the `id` of that Activity will
-    * be used. Throws an error if the `id` does not match a name and is not
-    * uri-like.
+    * be used.
     * @param {uri|string} id URI to set the `id` to or name of an Activity from
     * a Profile.
     * @return {ActivityBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `id` does not match a name and is not uri-like.
     */
     withId(id) {
-        // TODO decide if this should overwrite whole dang object...
-        // No! create an extra method, something like
-        // asProfile() or enrich()!
         const activity = this.lookup(id, 'Activity');
         return this.setIn(['map', 'id'], activity.id);
+    }
+
+    /**
+    * Makes the Activity look exactly as in the Profile it is from.
+    *
+    * If no `id` is provided but one is set for the Activity, that will be used.
+    * If the `id` is not a URI but matches a name of an Activity in a Profile
+    * loaded by {@link StatementBuilder#withProfile}, that Activity will
+    * be used.
+    * @param {uri|string} [id] URI or string to lookup the Activity with
+    * @return {ActivityBuilder} returns the updated builder object. The original
+    * is unmodified.
+    * @throws {Error} if `id` does not match a name and is not uri-like,
+    * or if no `id` is provided or present.
+    */
+    asProfile(id) {
+        if(!id) {
+            if(this.map.has('id')) {
+                id = this.map.get('id');
+            } else {
+                throw new Error("No id provided or already present");
+            }
+        }
+        const activity = this.lookup(id, 'Activity');
+        return ActivityBuilder.builder(value).set("oracle", this.oracle);
     }
 
     /**
@@ -286,11 +723,11 @@ export class ActivityBuilder extends BuilderRecord {
     *
     * If the `type` is not a URI but matches a name of an Activity Type in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Activity Type will be used. Throws an error if the `type` does not match
-    * a name and is not uri-like.
+    * Activity Type will be used.
     * @param {uri|string} type URI to set the `type` to.
     * @return {ActivityBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `type` does not match a name and is not uri-like.
     */
     withType(type) {
         const activityType = this.lookup(type, 'ActivityType');
@@ -302,12 +739,12 @@ export class ActivityBuilder extends BuilderRecord {
     *
     * If the `key` is not a URI but matches a name of an Activity Extension in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Activity Extension will be used. Throws an error if the `key` does not
-    * match a name and is not uri-like.
+    * Activity Extension will be used.
     * @param {uri|string} key URI key of the extension
     * @param {*} value any JSON-legal data structure
     * @return {ActivityBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `key` does not match a name and is not uri-like.
     */
     withExtension(key, value) {
         const extension = this.lookup(key, 'ActivityExtension')
@@ -452,7 +889,15 @@ export class ActivityBuilder extends BuilderRecord {
 }
 
 
-
+/**
+* Use AttachmentBuilder to make Attachments for use in your Statements.
+*
+* When working with Statements you should generally get an AttachmentBuilder
+* instance by the {@link StatementBuilder#attachments} property.
+*
+* Note: currently this library does not handle Attachment bodies, though they
+* can still be added later, during Statement sending.
+*/
 export class AttachmentBuilder extends BuilderRecord {
 
     /**
@@ -460,11 +905,11 @@ export class AttachmentBuilder extends BuilderRecord {
     *
     * If the `uri` is not a URI but matches a name of an Attachment Usage Type
     * in a Profile loaded by {@link StatementBuilder#withProfile}, the uri of
-    * that Attachment Usage Type will be used. Throws an error if the `uri`
-    * does not match a name and is not uri-like.
+    * that Attachment Usage Type will be used.
     * @param {uri|string} uri the attachment usage type
     * @return {AttachmentBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if `uri` does not match a name and is not uri-like.
     */
     withUsageType(uri) {
         const usageType = this.lookup(uri, 'AttachmentUsageType');
@@ -565,7 +1010,23 @@ export class AttachmentBuilder extends BuilderRecord {
 }
 
 
-
+/**
+* Use StatementBuilder to make Statements. If you're not planning to send
+* Statements according to a Profile Pattern, this is your starting point.
+*
+* @example
+* var statement = StatementBuilder.builder();
+*
+* statement = statement.withActorEmail(
+*     "zhangwei@example.gov"
+* ).withVerb(
+*     "http://made.up.verb.example.com/desalinated"
+* ).withObjectId(
+*     "http://made.up.activity.example.com/PacificOcean"
+* );
+*
+* console.log(statement.build());
+*/
 export class StatementBuilder extends BuilderRecord {
     /**
     * @ignore
@@ -591,13 +1052,13 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `verb` is not a verb object or a URI but matches a name of a Verb
     * in a Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that verb will be used. Throws an error if the
-    * `verb` does not match a name and is not uri-like or an object with an
-    * `id`. If a URI is provided will also attempt to load the complete
-    * Profile representation.
+    * Profile representation of that verb will be used. If a URI is provided
+    * will also attempt to load the complete Profile representation.
     * @param {uri|string|Verb} verb the verb URI, name or object.
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if `verb` does not match a name and is not uri-like or an
+    * object with an `id`.
     */
     withVerb(verb) {
         const fullVerb = verb.id ? verb : this.lookup(verb, 'Verb');
@@ -627,8 +1088,7 @@ export class StatementBuilder extends BuilderRecord {
     * StatementRef with that `id`.
     *   * As a name or URI of an Activity. If the Activity is found in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that Activity will be used. Throws an error
-    * if a name does not match an Activity and is not uri-like.
+    * Profile representation of that Activity will be used.
     *   * As a builder from this library for an Agent, Group, or Activity.
     *   * As a {@link StatementBuilder}, which will be used as a SubStatement
     * according to the rules from the xAPI specification.
@@ -639,6 +1099,8 @@ export class StatementBuilder extends BuilderRecord {
     * object the `object` to use
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if a string argument is not a UUID, does not match a name,
+    * and is not uri-like.
     */
     withObject(object) {
         const path = ['map', 'object'];
@@ -651,7 +1113,9 @@ export class StatementBuilder extends BuilderRecord {
             const activity = this.lookup(object, 'Activity');
             return this.setIn(path, fromJS(activity));
         } else if(object instanceof BuilderRecord) {
-            // TODO add check and conversion to SubStatement!
+            if(object instanceof StatementBuilder) {
+                object = object.asSubStatement();
+            }
             return this.setIn(path, object.map);
         } else {
             return this.setIn(path, fromJS(object));
@@ -721,19 +1185,24 @@ export class StatementBuilder extends BuilderRecord {
     * original is unmodified.
     */
     withTimestamp(timestamp) {
-        // TODO take other representations?
+        if(timestamp instanceof Date) {
+            timestamp = timestamp.toISOString();
+        }
         return this.withPath(['timestamp'], timestamp);
     }
 
     /**
     * Set the Statement as occurring at the current time.
     *
+    * Note: when .build() is called to turn this into a Statement,
+    * if no `timestamp` is set the current time will be used.
+    * This method is for if the time the statement occurs is
+    * before some information is known for the Statement.
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
     */
     withCurrentTimestamp() {
-        // TODO this
-
+        return this.withTimestamp(new Date().toISOString());
     }
 
     /**
@@ -880,12 +1349,16 @@ export class StatementBuilder extends BuilderRecord {
     /**
     * Add an ISO 8601 `duration` for the Statement `result`
     *
-    * @param {string} duration the `duration`
+    * If `duration` is a number, this will automatically convert it to a
+    * duration representation in seconds.
+    * @param {string|number} duration the `duration`
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
     */
     withDuration(duration) {
-        // TODO add seconds conversion niceties
+        if(typeof duration === 'number') {
+            duration = 'P' + number + 'S';
+        }
         return this.withPath(['result', 'duration'], duration);
     }
 
@@ -932,16 +1405,6 @@ export class StatementBuilder extends BuilderRecord {
     */
     withLanguage(language) {
         return this.withPath(['context', 'language'], language);
-    }
-
-    /**
-    * TODO document
-    *
-    * @return {StatementBuilder} returns the updated builder object. The
-    * original is unmodified.
-    */
-    withCurrentLanguage() {
-        // TODO look up from environment
     }
 
     /**
@@ -1563,7 +2026,9 @@ export class StatementBuilder extends BuilderRecord {
     }
 
 
-
+    /**
+    * @ignore
+    */
     withActivityMethod(method, args) {
         const path = ['map', 'object'];
         const activity = ActivityBuilder.builder(this.getIn(path))[method](...args);
@@ -1575,15 +2040,32 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `id` is not a URI but matches a name of an Activity in a Profile
     * loaded by {@link StatementBuilder#withProfile}, the `id` of that Activity will
-    * be used. Throws an error if the `id` does not match a name and is not
-    * uri-like.
+    * be used.
     * @param {uri|string} id URI to set the `id` to or name of an Activity from
     * a Profile.
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `id` does not match a name and is not uri-like.
     */
     withObjectId(id) {
         return this.withActivityMethod('withId', arguments);
+    }
+
+    /**
+    * Makes the Activity object look exactly as in the Profile it is from.
+    *
+    * If no `id` is provided but one is set for the Activity, that will be used.
+    * If the `id` is not a URI but matches a name of an Activity in a Profile
+    * loaded by {@link StatementBuilder#withProfile}, that Activity will
+    * be used.
+    * @param {uri|string} [id] URI or string to lookup the Activity with
+    * @return {StatementBuilder} returns the updated builder object. The original
+    * is unmodified.
+    * @throws {Error} if `id` does not match a name and is not uri-like,
+    * or if no `id` is provided or present.
+    */
+    withObjectAsProfile(id) {
+        return this.withActivityMethod('asProfile', arguments);
     }
 
     /**
@@ -1591,11 +2073,11 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `type` is not a URI but matches a name of an Activity Type in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Activity Type will be used. Throws an error if the `type` does not match
-    * a name and is not uri-like.
+    * Activity Type will be used.
     * @param {uri|string} type URI to set the `type` to.
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `type` does not match a name and is not uri-like.
     */
     withObjectType(type) {
         return this.withActivityMethod('withType', arguments);
@@ -1606,12 +2088,12 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `key` is not a URI but matches a name of an Activity Extension in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Activity Extension will be used. Throws an error if the `key` does not
-    * match a name and is not uri-like.
+    * Activity Extension will be used.
     * @param {uri|string} key URI key of the extension
     * @param {*} value any JSON-legal data structure
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `key` does not match a name and is not uri-like.
     */
     withObjectExtension(key, value) {
         return this.withActivityMethod('withExtension', arguments);
@@ -1738,8 +2220,8 @@ export class StatementBuilder extends BuilderRecord {
     *
     * @param {string} name The language-specific name for an Activity or the
     * Agent/Group name.
-    * @param {?string} language an RFC 5646 language tag, such as `en` or
-    * `zh-Hans`. Only use for Activity objects.
+    * @param {string} [language] an RFC 5646 language tag, such as `en` or
+    * `zh-Hans`. Must use for Activity objects, must not use for Agents.
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
     */
@@ -1757,6 +2239,7 @@ export class StatementBuilder extends BuilderRecord {
     */
     withContextActivity(variety, activity) {
         const path = ['map', 'context', 'contextActivities', variety];
+        let full_activity;
         if(typeof activity === 'string') {
             full_activity = fromJS(this.lookup(activity, 'Activity'));
         } else if(activity instanceof BuilderRecord) {
@@ -1765,7 +2248,7 @@ export class StatementBuilder extends BuilderRecord {
             full_activity = fromJS(activity);
         }
         return this.updateIn(path,
-            (activities = List()) => activities.insert(full_activity));
+            (activities = List()) => activities.push(full_activity));
     }
 
 
@@ -1775,13 +2258,14 @@ export class StatementBuilder extends BuilderRecord {
     * There are several possible ways to provide the Activity:
     *   * As a name or URI of an Activity. If the Activity is found in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that Activity will be used. Throws an error
-    * if a name does not match an Activity and is not uri-like.
+    * Profile representation of that Activity will be used.
     *   * As a builder from this library for an Activity.
     *   * as a complete simple javascript object of an Activity.
     * @param {uri|string|Object} activity the Activity to use
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if a string activity does not match a name and is not
+    * uri-like.
     */
     withContextCategory(activity) {
         return this.withContextActivity('category', activity);
@@ -1793,13 +2277,14 @@ export class StatementBuilder extends BuilderRecord {
     * There are several possible ways to provide the Activity:
     *   * As a name or URI of an Activity. If the Activity is found in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that Activity will be used. Throws an error
-    * if a name does not match an Activity and is not uri-like.
+    * Profile representation of that Activity will be used.
     *   * As a builder from this library for an Activity.
     *   * as a complete simple javascript object of an Activity.
     * @param {uri|string|Object} activity the Activity to use
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if a string activity does not match a name and is not
+    * uri-like.
     */
     withContextParent(activity) {
         return this.withContextActivity('parent', activity);
@@ -1811,13 +2296,14 @@ export class StatementBuilder extends BuilderRecord {
     * There are several possible ways to provide the Activity:
     *   * As a name or URI of an Activity. If the Activity is found in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that Activity will be used. Throws an error
-    * if a name does not match an Activity and is not uri-like.
+    * Profile representation of that Activity will be used.
     *   * As a builder from this library for an Activity.
     *   * as a complete simple javascript object of an Activity.
     * @param {uri|string|Object} activity the Activity to use
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if a string activity does not match a name and is not
+    * uri-like.
     */
     withContextGrouping(activity) {
         return this.withContextActivity('grouping', activity);
@@ -1829,13 +2315,14 @@ export class StatementBuilder extends BuilderRecord {
     * There are several possible ways to provide the Activity:
     *   * As a name or URI of an Activity. If the Activity is found in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the complete
-    * Profile representation of that Activity will be used. Throws an error
-    * if a name does not match an Activity and is not uri-like.
+    * Profile representation of that Activity will be used.
     *   * As a builder from this library for an Activity.
     *   * as a complete simple javascript object of an Activity.
     * @param {uri|string|Object} activity the Activity to use
     * @return {StatementBuilder} returns the updated builder object. The
     * original is unmodified.
+    * @throws {Error} if a string activity does not match a name and is not
+    * uri-like.
     */
     withContextOther(activity) {
         return this.withContextActivity('other', activity);
@@ -1855,12 +2342,12 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `key` is not a URI but matches a name of a Context Extension in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Context Extension will be used. Throws an error if the `key` does not
-    * match a name and is not uri-like.
+    * Context Extension will be used.
     * @param {uri|string} key URI key of the extension
     * @param {*} value any JSON-legal data structure
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `key` does not match a name and is not uri-like.
     */
     withContextExtension(key, value) {
         return this.withExtension('context', key, value);
@@ -1872,12 +2359,12 @@ export class StatementBuilder extends BuilderRecord {
     *
     * If the `key` is not a URI but matches a name of a Result Extension in a
     * Profile loaded by {@link StatementBuilder#withProfile}, the uri of that
-    * Result Extension will be used. Throws an error if the `key` does not
-    * match a name and is not uri-like.
+    * Result Extension will be used.
     * @param {uri|string} key URI key of the extension
     * @param {*} value any JSON-legal data structure
     * @return {StatementBuilder} returns the updated builder object. The original
     * is unmodified.
+    * @throws {Error} if `key` does not match a name and is not uri-like.
     */
     withResultExtension(key, value) {
         return this.withExtension('result', key, value);
@@ -1888,14 +2375,29 @@ export class StatementBuilder extends BuilderRecord {
 
     /**
     * Makes this create a SubStatement (StatementBuilder makes Statements by
-    * default).
+    * default)
     *
-    * @return {StatementBuilder} returns the updated builder object. The
+    * You do not have to call this to use a StatementBuilder as a SubStatement.
+    * Just pass another StatementBuilder to {@link StatementBuilder#withObject}
+    * and the conversion will be handled automatically.
+    * @return {SubStatementBuilder} returns a new builder object. The
     * original is unmodified.
     */
     asSubStatement() {
-        // TODO: return a version of this with a different build method,
-        // that tidies up for being a SubStatement
+        // TODO do some checking that the SubStatement doesn't have a
+        // SubStatement object itself? Forbid that in the subclass?
+        return SubStatementBuilder.builder(this.setIn(
+            // required objectType
+            ['map', 'objectType'], 'SubStatement'
+        ).update(
+            'map', (map) => map.deleteAll([
+                // get rid of illegal SubStatement properties
+                'id',
+                'timestamp',
+                'version',
+                'authority'
+            ])
+        ));
     }
 
     /**
@@ -1940,31 +2442,208 @@ export class StatementBuilder extends BuilderRecord {
     }
 
     /**
-    * @ignore
+    * Make this Statement follow the rules of a Statement template
+    *
+    * If the Statement Template has `verb` or `objectActivityType` determining
+    * properties, those are set on the Statement. When the Statement is built,
+    * all the rules of the Statement Template are checked, as well as the
+    * presence of all the determining properties.
+    *
+    * @param {uri|string|Object} template the URI, name, or full javascript
+    * object representation of a Statement Template.
+    * @returns {StatementBuilder} a Statement Template-validating
+    * StatementBuilder
+    * @throws {Error} if a uri or string is passed in and there is no matching
+    * Statement Template.
     */
-    pattern(name) {
-        // TODO: figure out how this works. Question the args. Question what
-        // methods enable all this.
-        // Maybe have a no-arg "next" and then each call to pattern(top level name, template) overlays the current statement?
-        // I think that might work. Also allow pattern(top level name) and then a bunch of next and template calls? Yeah... maybe?
+    templated(template) {
+        if(typeof template === 'string') {
+            template = this.lookup(template, 'StatementTemplate');
+            // TODO error handling beyond provided by lookup?
+        }
+
+        let statement = this;
+
+        if(template.verb) {
+            statement = statement.withVerb(template.verb);
+        }
+        if(template.objectActivityType) {
+            statement = statement.withObjectType(template.objectActivityType);
+        }
+
+        const TemplateBuilder = class extends StatementBuilder {
+
+            _error(message) {
+                throw new Error("For template " + template.id + ", " + message);
+            }
+
+            _multipath(js, expressions) {
+                return [].concat(
+                    ...expressions.map((expression) =>
+                        jsonpath.query(js, expression)
+                    )
+                );
+            }
+
+            _ruleDescription(rule) {
+                if(rule.selector) {
+                    return `${rule.location} (each refined with ${rule.selector})`;
+                } else {
+                    return rule.location;
+                }
+            }
+
+            _checkRule(js, rule) {
+                const description = this._ruleDescription(rule);
+                // TODO real parsing here for those rare | inside rule cases
+                const locations = _.split(rule.location, '|');
+                const values = this._multipath(js, locations);
+                let has_unmatchable = false;
+                let matchables = values;
+                if(rule.selector) {
+                    // override the above with the results of selection
+                    // TODO break all this top stuff into a nice function
+                    // TODO do we need to handle the case where
+                    // the selector is run on a non-object? If so,
+                    // what's the right way to proceed? If we don't,
+                    // jsonpath.query will error, as it only works on
+                    // objects.
+                    const selectors = _.split(rule.selector, '|');
+                    const selected = values.map((value) =>
+                        this._multipath(value, selectors)
+                    );
+                    has_unmatchable = !_.isEmpty(selected.filter(_.isEmpty));
+                    matchables = [].concat(...selected);
+                }
+
+                if(rule.presence === 'included') {
+                    if(_.isEmpty(matchables)) {
+                        this._error(`${description} must include at least one value, but does not`);
+                    }
+                    if(has_unmatchable) {
+                        this._error(`${description} must not include any unmatchable values, but does`);
+                    }
+                } else if(rule.presence === 'excluded') {
+                    if(!_.isEmpty(matchables)) {
+                        this._error(`${description} must not include any values, but does`);
+                    }
+                }
+                if(!rule.presence ||
+                    rule.presence === 'included' ||
+                    (rule.presence === 'recommended' && !_.isEmpty(matchables))) {
+                    if(rule.any && _.isEmpty(_.intersection(rule.any, matchables))) {
+                        this._error(`${description} must have at least one value from ${_.join(rule.any)}`);
+                    }
+                    if(rule.all) {
+                        if(!_.isEmpty(_.difference(rule.all, matchables))) {
+                            this._error(`${description} must not include any values that aren't from ${_.join(rule.all)}`);
+                        }
+                        if(has_unmatchable) {
+                            this._error(`${description} must not include any unmatchable values, but does`);
+                        }
+                    }
+                    if(rule.none && !_.isEmpty(_.intersection(rule.none, matchables))) {
+                        this._error(`${description} must not include any of ${_.join(rule.none)}, but does`);
+                    }
+                }
+
+            }
+
+            validate(js) {
+                super.validate(js);
+                // TODO add proactive validation of this vs all other
+                // templates in the profile! Those still matter for conformance
+                // though probably have that controlled by function caller
+                // here, and only automatic in the PatternRegistration.template
+                // call.
+                if(template.verb && template.verb != _.get(js, 'verb.id')) {
+                    this._error(`verb id must be ${template.verb}`);
+                }
+                if(template.objectActivityType && template.objectActivityType != _.get(js, 'object.definition.type')) {
+                    this._error(`object activity type must be ${template.objectActivityType}`);
+                }
+                for(let name of ["parent", "category", "grouping", "other"]) {
+                    const capitalized = capitalize(name);
+                    if(template["context${capitalized}ActivityType"]) {
+                        const required = template["context${capitalized}ActivityType"];
+                        const present = _.get(js, 'context.contextActivities.${name}', []).map((activity) =>
+                            _.get(activity, 'definition.type')
+                        );
+                        const missing = _.difference(required, present);
+                        if(!_.isEmpty(missing)) {
+                            this._error(`${name} context activity types must include all of ${_.join(missing)}`);
+                        }
+                    }
+                }
+                if(template.attachmentUsageType) {
+                    const missing = _.difference(template.attachmentUsageType,
+                        _.get(js, 'attachments', []).map((attachment) => attachment.usageType)
+                    );
+                    if(!_.isEmpty(missing)) {
+                        this._error(`attachment usage types must include all of ${_.join(missing)}`);
+                    }
+                }
+                if(template.objectStatementRefTemplate && "StatementRef" != _.get(js, 'object.objectType')) {
+                    this._error("object must be a StatementRef");
+                }
+                if(template.contextStatementRefTemplate && !_.get(js, 'context.statement')) {
+                    this._error("the context statement must be present");
+                }
+                if(template.rules) {
+                    for(let rule of template.rules) {
+                        this._checkRule(js, rule);
+                    }
+                }
+            }
+        }
+
+
+        return TemplateBuilder.builder(statement);
     }
-
-
 }
 
+/**
+* This class is returned when {@link StatementBuilder#asSubStatement} is called.
+* It makes sure the disallowed SubStatement properties (id, timestamp, version,
+* and authority) are not set.
+*/
+export class SubStatementBuilder extends StatementBuilder {
 
+    /**
+    * @ignore
+    */
+    withId() {
+        throw new Error("That property not allowed in SubStatements");
+    }
 
-// TODO have language controls. That warn when a language isn't available!
-// and have tunable behavior. Default: if good substitute, use, otherwise no language.
-// options: use *something* no matter what, only use exact, and the default
+    /**
+    * @ignore
+    */
+    withTimestamp() {
+        throw new Error("That property not allowed in SubStatements");
+    }
 
+    /**
+    * @ignore
+    */
+    withVersion() {
+        throw new Error("That property not allowed in SubStatements");
+    }
 
+    /**
+    * @ignore
+    */
+    withAuthority() {
+        throw new Error("That property not allowed in SubStatements");
+    }
 
-// Then: oracles. Statement Templates. Validation. ...Patterns with registration automation?
-// start with basic validation? Or put that off actually?
-
-// idea for patterns: next(templatename), gives a new builder for the new template
-
-// let me see: builder.withStuff().pattern(patternname, templatename).withOtherStuff().next(templatename)
-// ... keeps the things from withStuff? That is, we save (a stack of?) versions of the Statement
-// as we transition different contexts? That's kinda pretty, and seems to make a decent bit of sense
+    /**
+    * @ignore
+    */
+    withAgentMethod(location) {
+        if(location[0] === 'authority') {
+            throw new Error("That property not allowed in SubStatements");
+        }
+        return super.withAgentMethod(...arguments);
+    }
+}

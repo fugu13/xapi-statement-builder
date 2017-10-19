@@ -1,44 +1,25 @@
 {
-  "coverage": "85.14%",
-  "expectCount": 175,
-  "actualCount": 149,
+  "coverage": "96.37%",
+  "expectCount": 193,
+  "actualCount": 186,
   "files": {
     "src/builder.js": {
-      "expectCount": 163,
-      "actualCount": 149,
+      "expectCount": 183,
+      "actualCount": 181,
       "undocumentLines": [
-        25,
-        29,
-        49,
-        56,
-        57,
-        71,
-        78,
-        83,
-        90,
-        102,
-        250,
-        456,
-        569,
-        1567
+        157,
+        160
       ]
     },
     "src/oracle.js": {
-      "expectCount": 12,
-      "actualCount": 0,
+      "expectCount": 10,
+      "actualCount": 5,
       "undocumentLines": [
-        3,
-        17,
-        21,
-        23,
-        35,
-        43,
-        47,
-        55,
-        59,
-        61,
-        65,
-        80
+        28,
+        40,
+        49,
+        79,
+        83
       ]
     }
   }

@@ -24,28 +24,16 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "xapi-statement-builder/src/oracle.js~compositeoracle",
-    "class/src/oracle.js~CompositeOracle.html",
-    "<span>CompositeOracle</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/oracle.js</span>",
+    "xapi-statement-builder/src/builder.js~patternregistration",
+    "class/src/builder.js~PatternRegistration.html",
+    "<span>PatternRegistration</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/builder.js</span>",
     "class"
   ],
   [
-    "xapi-statement-builder/src/oracle.js~compositeoraclebase",
-    "variable/index.html#static-variable-CompositeOracleBase",
-    "<span>CompositeOracleBase</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/oracle.js</span>",
-    "variable"
-  ],
-  [
-    "xapi-statement-builder/src/oracle.js~profileoracle",
-    "class/src/oracle.js~ProfileOracle.html",
-    "<span>ProfileOracle</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/oracle.js</span>",
+    "xapi-statement-builder/src/builder.js~profileregistration",
+    "class/src/builder.js~ProfileRegistration.html",
+    "<span>ProfileRegistration</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/builder.js</span>",
     "class"
-  ],
-  [
-    "xapi-statement-builder/src/oracle.js~profileoraclebase",
-    "variable/index.html#static-variable-ProfileOracleBase",
-    "<span>ProfileOracleBase</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/oracle.js</span>",
-    "variable"
   ],
   [
     "xapi-statement-builder/src/builder.js~statementbuilder",
@@ -54,15 +42,15 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "xapi-statement-builder/src/builder.js~substatementbuilder",
+    "class/src/builder.js~SubStatementBuilder.html",
+    "<span>SubStatementBuilder</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/builder.js</span>",
+    "class"
+  ],
+  [
     "xapi-statement-builder/src/builder.js~_builderrecord",
     "variable/index.html#static-variable-_BuilderRecord",
     "<span>_BuilderRecord</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/builder.js</span>",
-    "variable"
-  ],
-  [
-    "xapi-statement-builder/src/oracle.js~urioracle",
-    "variable/index.html#static-variable-uriOracle",
-    "<span>uriOracle</span> <span class=\"search-result-import-path\">xapi-statement-builder/src/oracle.js</span>",
     "variable"
   ],
   [
@@ -354,6 +342,12 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/builder.js~activitybuilder#asprofile",
+    "class/src/builder.js~ActivityBuilder.html#instance-method-asProfile",
+    "src/builder.js~ActivityBuilder#asProfile",
+    "method"
+  ],
+  [
     "src/builder.js~activitybuilder#withchoices",
     "class/src/builder.js~ActivityBuilder.html#instance-method-withChoices",
     "src/builder.js~ActivityBuilder#withChoices",
@@ -552,21 +546,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/builder.js~builderrecord#lookup",
-    "class/src/builder.js~BuilderRecord.html#instance-method-lookup",
-    "src/builder.js~BuilderRecord#lookup",
-    "method"
-  ],
-  [
-    "src/builder.js~builderrecord#prebuild",
-    "class/src/builder.js~BuilderRecord.html#instance-method-prebuild",
-    "src/builder.js~BuilderRecord#prebuild",
-    "method"
-  ],
-  [
-    "src/builder.js~builderrecord#validate",
-    "class/src/builder.js~BuilderRecord.html#instance-method-validate",
-    "src/builder.js~BuilderRecord#validate",
+    "src/builder.js~builderrecord#unsafebuild",
+    "class/src/builder.js~BuilderRecord.html#instance-method-unsafeBuild",
+    "src/builder.js~BuilderRecord#unsafeBuild",
     "method"
   ],
   [
@@ -586,6 +568,24 @@ window.esdocSearchIndex = [
     "typedef/index.html#static-typedef-LanguageMap",
     "src/builder.js~LanguageMap",
     "typedef"
+  ],
+  [
+    "src/builder.js~profileregistration#pattern",
+    "class/src/builder.js~ProfileRegistration.html#instance-method-pattern",
+    "src/builder.js~ProfileRegistration#pattern",
+    "method"
+  ],
+  [
+    "src/builder.js~profileregistration#template",
+    "class/src/builder.js~ProfileRegistration.html#instance-method-template",
+    "src/builder.js~ProfileRegistration#template",
+    "method"
+  ],
+  [
+    "src/builder.js~profileregistration#withprofile",
+    "class/src/builder.js~ProfileRegistration.html#instance-method-withProfile",
+    "src/builder.js~ProfileRegistration#withProfile",
+    "method"
   ],
   [
     "src/builder.js~statementbuilder#activities",
@@ -666,9 +666,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/builder.js~statementbuilder#withactivitymethod",
-    "class/src/builder.js~StatementBuilder.html#instance-method-withActivityMethod",
-    "src/builder.js~StatementBuilder#withActivityMethod",
+    "src/builder.js~statementbuilder#templated",
+    "class/src/builder.js~StatementBuilder.html#instance-method-templated",
+    "src/builder.js~StatementBuilder#templated",
     "method"
   ],
   [
@@ -840,12 +840,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/builder.js~statementbuilder#withcurrentlanguage",
-    "class/src/builder.js~StatementBuilder.html#instance-method-withCurrentLanguage",
-    "src/builder.js~StatementBuilder#withCurrentLanguage",
-    "method"
-  ],
-  [
     "src/builder.js~statementbuilder#withcurrenttimestamp",
     "class/src/builder.js~StatementBuilder.html#instance-method-withCurrentTimestamp",
     "src/builder.js~StatementBuilder#withCurrentTimestamp",
@@ -957,6 +951,12 @@ window.esdocSearchIndex = [
     "src/builder.js~statementbuilder#withobjectaccountname",
     "class/src/builder.js~StatementBuilder.html#instance-method-withObjectAccountName",
     "src/builder.js~StatementBuilder#withObjectAccountName",
+    "method"
+  ],
+  [
+    "src/builder.js~statementbuilder#withobjectasprofile",
+    "class/src/builder.js~StatementBuilder.html#instance-method-withObjectAsProfile",
+    "src/builder.js~StatementBuilder#withObjectAsProfile",
     "method"
   ],
   [
@@ -1246,47 +1246,5 @@ window.esdocSearchIndex = [
     "file/src/oracle.js.html",
     "src/oracle.js",
     "file"
-  ],
-  [
-    "src/oracle.js~compositeoracle#add",
-    "class/src/oracle.js~CompositeOracle.html#instance-method-add",
-    "src/oracle.js~CompositeOracle#add",
-    "method"
-  ],
-  [
-    "src/oracle.js~compositeoracle#lookup",
-    "class/src/oracle.js~CompositeOracle.html#instance-method-lookup",
-    "src/oracle.js~CompositeOracle#lookup",
-    "method"
-  ],
-  [
-    "src/oracle.js~compositeoracle#search",
-    "class/src/oracle.js~CompositeOracle.html#instance-method-search",
-    "src/oracle.js~CompositeOracle#search",
-    "method"
-  ],
-  [
-    "src/oracle.js~profileoracle#lookup",
-    "class/src/oracle.js~ProfileOracle.html#instance-method-lookup",
-    "src/oracle.js~ProfileOracle#lookup",
-    "method"
-  ],
-  [
-    "src/oracle.js~profileoracle#matcher",
-    "class/src/oracle.js~ProfileOracle.html#instance-method-matcher",
-    "src/oracle.js~ProfileOracle#matcher",
-    "method"
-  ],
-  [
-    "src/oracle.js~profileoracle#search",
-    "class/src/oracle.js~ProfileOracle.html#instance-method-search",
-    "src/oracle.js~ProfileOracle#search",
-    "method"
-  ],
-  [
-    "src/oracle.js~profileoracle.fromprofile",
-    "class/src/oracle.js~ProfileOracle.html#static-method-fromProfile",
-    "src/oracle.js~ProfileOracle.fromProfile",
-    "method"
   ]
 ]

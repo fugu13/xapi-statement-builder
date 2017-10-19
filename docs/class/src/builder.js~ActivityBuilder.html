@@ -33,13 +33,11 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AgentBuilder.html">AgentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AttachmentBuilder.html">AttachmentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html">BuilderRecord</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~PatternRegistration.html">PatternRegistration</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~ProfileRegistration.html">ProfileRegistration</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~StatementBuilder.html">StatementBuilder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~CompositeOracle.html">CompositeOracle</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~ProfileOracle.html">ProfileOracle</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~SubStatementBuilder.html">SubStatementBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-_BuilderRecord">_BuilderRecord</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-CompositeOracleBase">CompositeOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ProfileOracleBase">ProfileOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-uriOracle">uriOracle</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-InteractionComponent">InteractionComponent</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-LanguageMap">LanguageMap</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Verb">Verb</a></span></span></li>
@@ -50,13 +48,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ActivityBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber250">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ActivityBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber668">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber250">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber668">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -76,12 +74,31 @@
 
   
   
-  
+  <div class="description" data-ice="description"><p>Use ActivityBuilder to make Activities, particularly ones you
+plan to put in <code>context</code>, since StatementBuilder does not provide methods
+to update them directly.</p>
+<p>When working with Statements you should generally get an ActivityBuilder
+instance by the <span><a href="class/src/builder.js~StatementBuilder.html#instance-get-activities">StatementBuilder#activities</a></span> property.</p>
+</div>
   
 
   
 
-  
+  <div data-ice="exampleDocs">
+    <h4>Example:</h4>
+    
+  <div class="example-doc" data-ice="exampleDoc">
+      
+      <pre class="prettyprint source-code"><code data-ice="exampleCode">var statement = StatementBuilder.builder().withProfile(....);
+
+// values passed to withId are looked up in Profiles
+var topic = StatementBuilder.activities.withId(&quot;Biology&quot;);
+
+statement = statement.withContextGrouping(topic);
+
+my_send_statement_function(statement.build());</code></pre>
+    </div>
+</div>
 
   
 
@@ -132,6 +149,35 @@
   <tbody>
   
   <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~ActivityBuilder.html#instance-method-asProfile">asProfile</a></span></span><span class="code" data-ice="signature">(id: <span><a href="typedef/index.html#static-typedef-uri">uri</a></span> | <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span><a href="class/src/builder.js~ActivityBuilder.html">ActivityBuilder</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Makes the Activity look exactly as in the Profile it is from.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
     <td>
       <span class="access" data-ice="access">public</span>
       
@@ -530,13 +576,14 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>): <span>*</span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Make an instance of a Builder</p>
+</div>
       </div>
     </td>
     <td>
@@ -558,13 +605,15 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Get the plain javascript object from this builder, ready to serialize
+into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -586,69 +635,15 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-lookup">lookup</a></span></span><span class="code" data-ice="signature">(identifier: <span>*</span>, objectType: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-unsafeBuild">unsafeBuild</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-prebuild">prebuild</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-validate">validate</a></span></span><span class="code" data-ice="signature">(js: <span>*</span>)</span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
+        <div data-ice="description"><p><em>Without validating</em>, get the plain javascript object from this builder,
+ready to serialize into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -675,7 +670,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber257">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber675">source</a></span></span>
     </span>
   </h3>
 
@@ -698,7 +693,7 @@
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">value</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
-      <td data-ice="appendix"><ul><li>nullable: true</li></ul></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
       <td data-ice="description"><p>A plain javascript Activity.</p>
 </td>
     </tr>
@@ -743,6 +738,98 @@
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-asProfile">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">asProfile</span><span class="code" data-ice="signature">(id: <span><a href="typedef/index.html#static-typedef-uri">uri</a></span> | <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span><a href="class/src/builder.js~ActivityBuilder.html">ActivityBuilder</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber709">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>Makes the Activity look exactly as in the Profile it is from.</p>
+<p>If no <code>id</code> is provided but one is set for the Activity, that will be used.
+If the <code>id</code> is not a URI but matches a name of an Activity in a Profile
+loaded by <span><a href="class/src/builder.js~StatementBuilder.html#instance-method-withProfile">StatementBuilder#withProfile</a></span>, that Activity will
+be used.</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">id</td>
+      <td data-ice="type" class="code"><span><a href="typedef/index.html#static-typedef-uri">uri</a></span> | <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
+      <td data-ice="description"><p>URI or string to lookup the Activity with</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span><a href="class/src/builder.js~ActivityBuilder.html">ActivityBuilder</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>returns the updated builder object. The original
+is unmodified.</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  <div data-ice="throwWrap">
+    <h4>Throw:</h4>
+    <table>
+      <tbody>
+      
+      <tr class="throw" data-ice="throw">
+        <td><p data-ice="throwName"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span></p></td>
+        <td data-ice="throwDesc"><p>if <code>id</code> does not match a name and is not uri-like,
+or if no <code>id</code> is provided or present.</p>
+</td>
+      </tr>
+</tbody>
+    </table>
+  </div>
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-withChoices">
     <span class="access" data-ice="access">public</span>
     
@@ -754,7 +841,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber366">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber803">source</a></span></span>
     </span>
   </h3>
 
@@ -830,7 +917,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber354">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber791">source</a></span></span>
     </span>
   </h3>
 
@@ -906,7 +993,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber449">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber886">source</a></span></span>
     </span>
   </h3>
 
@@ -990,7 +1077,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber312">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber749">source</a></span></span>
     </span>
   </h3>
 
@@ -1000,8 +1087,7 @@ is unmodified.</p>
   <div data-ice="description"><p>Add an extension to the Activity definition</p>
 <p>If the <code>key</code> is not a URI but matches a name of an Activity Extension in a
 Profile loaded by <span><a href="class/src/builder.js~StatementBuilder.html#instance-method-withProfile">StatementBuilder#withProfile</a></span>, the uri of that
-Activity Extension will be used. Throws an error if the <code>key</code> does not
-match a name and is not uri-like.</p>
+Activity Extension will be used.</p>
 </div>
 
   
@@ -1053,7 +1139,19 @@ is unmodified.</p>
 
   
 
-  
+  <div data-ice="throwWrap">
+    <h4>Throw:</h4>
+    <table>
+      <tbody>
+      
+      <tr class="throw" data-ice="throw">
+        <td><p data-ice="throwName"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span></p></td>
+        <td data-ice="throwDesc"><p>if <code>key</code> does not match a name and is not uri-like.</p>
+</td>
+      </tr>
+</tbody>
+    </table>
+  </div>
 
   
 
@@ -1076,7 +1174,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber276">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber691">source</a></span></span>
     </span>
   </h3>
 
@@ -1086,8 +1184,7 @@ is unmodified.</p>
   <div data-ice="description"><p>Set the Activity <code>id</code></p>
 <p>If the <code>id</code> is not a URI but matches a name of an Activity in a Profile
 loaded by <span><a href="class/src/builder.js~StatementBuilder.html#instance-method-withProfile">StatementBuilder#withProfile</a></span>, the <code>id</code> of that Activity will
-be used. Throws an error if the <code>id</code> does not match a name and is not
-uri-like.</p>
+be used.</p>
 </div>
 
   
@@ -1133,7 +1230,19 @@ is unmodified.</p>
 
   
 
-  
+  <div data-ice="throwWrap">
+    <h4>Throw:</h4>
+    <table>
+      <tbody>
+      
+      <tr class="throw" data-ice="throw">
+        <td><p data-ice="throwName"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span></p></td>
+        <td data-ice="throwDesc"><p>if <code>id</code> does not match a name and is not uri-like.</p>
+</td>
+      </tr>
+</tbody>
+    </table>
+  </div>
 
   
 
@@ -1156,7 +1265,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber342">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber779">source</a></span></span>
     </span>
   </h3>
 
@@ -1231,7 +1340,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber331">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber768">source</a></span></span>
     </span>
   </h3>
 
@@ -1306,7 +1415,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber435">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber872">source</a></span></span>
     </span>
   </h3>
 
@@ -1389,7 +1498,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber378">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber815">source</a></span></span>
     </span>
   </h3>
 
@@ -1465,7 +1574,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber390">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber827">source</a></span></span>
     </span>
   </h3>
 
@@ -1541,7 +1650,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber414">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber851">source</a></span></span>
     </span>
   </h3>
 
@@ -1617,7 +1726,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber402">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber839">source</a></span></span>
     </span>
   </h3>
 
@@ -1693,7 +1802,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber295">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber732">source</a></span></span>
     </span>
   </h3>
 
@@ -1703,8 +1812,7 @@ is unmodified.</p>
   <div data-ice="description"><p>Set the Activity <code>type</code></p>
 <p>If the <code>type</code> is not a URI but matches a name of an Activity Type in a
 Profile loaded by <span><a href="class/src/builder.js~StatementBuilder.html#instance-method-withProfile">StatementBuilder#withProfile</a></span>, the uri of that
-Activity Type will be used. Throws an error if the <code>type</code> does not match
-a name and is not uri-like.</p>
+Activity Type will be used.</p>
 </div>
 
   
@@ -1749,7 +1857,19 @@ is unmodified.</p>
 
   
 
-  
+  <div data-ice="throwWrap">
+    <h4>Throw:</h4>
+    <table>
+      <tbody>
+      
+      <tr class="throw" data-ice="throw">
+        <td><p data-ice="throwName"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span></p></td>
+        <td data-ice="throwDesc"><p>if <code>type</code> does not match a name and is not uri-like.</p>
+</td>
+      </tr>
+</tbody>
+    </table>
+  </div>
 
   
 

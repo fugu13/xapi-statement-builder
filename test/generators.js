@@ -41,10 +41,11 @@ function shuffleArray(array) {
 // hmmm... consider making normal JS versions too? Yeah
 
 // would it be better to create classes for these so there're fewer implicit
-// data structure requirements?
+// data structure requirements? I'd love it if replicating the hypothesis
+// python library's state machines were easier, as that would be vastly
+// easier to write, read, and debug.
 
 function combine_arrays(parts) {
-    console.log("combining", parts);
     let [required, optionals] = parts;
     return required.concat(optionals);
 }
@@ -58,15 +59,12 @@ function split_arrays(number_required) {
 
 function compile(Builder) {
     return (operations) => {
-        console.log("All operations!", operations);
         let entity = Builder.builder();
         operations.forEach((operation) => {
             const op = operation[0];
             const args = operation.slice(1);
             entity = entity[op](...args);
         })
-        console.log("entity!", entity);
-        console.log("made...", entity.build());
         return entity.build();
     }
 }
@@ -132,10 +130,6 @@ function decompile_agent(agent) {
     }
     // just get super aggressive here to prevent recursion issues
     return identifying.slice(0, 1);
-    // shuffleArray(identifying);
-    // const operations = identifying.slice(0,1).concat(shuffleArray(identifying.slice(1).concat(others)));
-    // console.log(operations);
-    // return operations;
 }
 
 export const { agent, just_agent, just_agent_minimal_part, agent_minimal_part } = jsc.letrec((tie) => {
@@ -186,13 +180,10 @@ export const { agent, just_agent, just_agent_minimal_part, agent_minimal_part } 
     };
 });
 
-// one thing this is doing is making clear the usefulness of the state machine approach
-
-
 
 const actor_verb = jsc.tuple([
     jsc.oneof(
-        jsc.tuple([agent_minimal_part]).smap(munge_pieces("Actor"), unmunge_pieces("Actor")),
+        agent_minimal_part.smap(munge_pieces("Actor"), unmunge_pieces("Actor")),
         jsc.tuple([jsc.constant("withActor"), agent])
     ),
     jsc.tuple([

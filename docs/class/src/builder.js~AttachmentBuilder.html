@@ -33,13 +33,11 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AgentBuilder.html">AgentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AttachmentBuilder.html">AttachmentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html">BuilderRecord</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~PatternRegistration.html">PatternRegistration</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~ProfileRegistration.html">ProfileRegistration</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~StatementBuilder.html">StatementBuilder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~CompositeOracle.html">CompositeOracle</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~ProfileOracle.html">ProfileOracle</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~SubStatementBuilder.html">SubStatementBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-_BuilderRecord">_BuilderRecord</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-CompositeOracleBase">CompositeOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ProfileOracleBase">ProfileOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-uriOracle">uriOracle</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-InteractionComponent">InteractionComponent</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-LanguageMap">LanguageMap</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Verb">Verb</a></span></span></li>
@@ -50,13 +48,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {AttachmentBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber456">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {AttachmentBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber901">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber456">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber901">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -76,7 +74,12 @@
 
   
   
-  
+  <div class="description" data-ice="description"><p>Use AttachmentBuilder to make Attachments for use in your Statements.</p>
+<p>When working with Statements you should generally get an AttachmentBuilder
+instance by the <span><a href="class/src/builder.js~StatementBuilder.html#instance-get-attachments">StatementBuilder#attachments</a></span> property.</p>
+<p>Note: currently this library does not handle Attachment bodies, though they
+can still be added later, during Statement sending.</p>
+</div>
   
 
   
@@ -322,13 +325,14 @@ MIME type</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>): <span>*</span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Make an instance of a Builder</p>
+</div>
       </div>
     </td>
     <td>
@@ -350,13 +354,15 @@ MIME type</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Get the plain javascript object from this builder, ready to serialize
+into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -378,69 +384,15 @@ MIME type</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-lookup">lookup</a></span></span><span class="code" data-ice="signature">(identifier: <span>*</span>, objectType: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-unsafeBuild">unsafeBuild</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-prebuild">prebuild</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-validate">validate</a></span></span><span class="code" data-ice="signature">(js: <span>*</span>)</span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
+        <div data-ice="description"><p><em>Without validating</em>, get the plain javascript object from this builder,
+ready to serialize into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -470,7 +422,7 @@ MIME type</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber489">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber934">source</a></span></span>
     </span>
   </h3>
 
@@ -546,7 +498,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber562">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber1007">source</a></span></span>
     </span>
   </h3>
 
@@ -630,7 +582,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber548">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber993">source</a></span></span>
     </span>
   </h3>
 
@@ -714,7 +666,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber526">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber971">source</a></span></span>
     </span>
   </h3>
 
@@ -791,7 +743,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber500">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber945">source</a></span></span>
     </span>
   </h3>
 
@@ -866,7 +818,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber513">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber958">source</a></span></span>
     </span>
   </h3>
 
@@ -943,7 +895,7 @@ original is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber469">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber914">source</a></span></span>
     </span>
   </h3>
 
@@ -953,8 +905,7 @@ original is unmodified.</p>
   <div data-ice="description"><p>Provide a <code>usageType</code> uri</p>
 <p>If the <code>uri</code> is not a URI but matches a name of an Attachment Usage Type
 in a Profile loaded by <span><a href="class/src/builder.js~StatementBuilder.html#instance-method-withProfile">StatementBuilder#withProfile</a></span>, the uri of
-that Attachment Usage Type will be used. Throws an error if the <code>uri</code>
-does not match a name and is not uri-like.</p>
+that Attachment Usage Type will be used.</p>
 </div>
 
   
@@ -999,7 +950,19 @@ original is unmodified.</p>
 
   
 
-  
+  <div data-ice="throwWrap">
+    <h4>Throw:</h4>
+    <table>
+      <tbody>
+      
+      <tr class="throw" data-ice="throw">
+        <td><p data-ice="throwName"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a></span></p></td>
+        <td data-ice="throwDesc"><p>if <code>uri</code> does not match a name and is not uri-like.</p>
+</td>
+      </tr>
+</tbody>
+    </table>
+  </div>
 
   
 

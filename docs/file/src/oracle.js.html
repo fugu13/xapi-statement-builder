@@ -33,13 +33,11 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AgentBuilder.html">AgentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AttachmentBuilder.html">AttachmentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html">BuilderRecord</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~PatternRegistration.html">PatternRegistration</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~ProfileRegistration.html">ProfileRegistration</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~StatementBuilder.html">StatementBuilder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~CompositeOracle.html">CompositeOracle</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~ProfileOracle.html">ProfileOracle</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~SubStatementBuilder.html">SubStatementBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-_BuilderRecord">_BuilderRecord</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-CompositeOracleBase">CompositeOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ProfileOracleBase">ProfileOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-uriOracle">uriOracle</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-InteractionComponent">InteractionComponent</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-LanguageMap">LanguageMap</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Verb">Verb</a></span></span></li>
@@ -50,8 +48,11 @@
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/oracle.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { Record, OrderedSet, fromJS } from &apos;immutable&apos;;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { Record, OrderedSet, fromJS, List } from &apos;immutable&apos;;
 
+/**
+* @ignore
+*/
 export let uriOracle = {
     lookup(identifier, objectType) {
         if(identifier.indexOf(&apos;:&apos;) != -1) {
@@ -60,54 +61,69 @@ export let uriOracle = {
             }
         }
     },
-
-    search(query, objectType) {
-        return [];
-    }
 };
 
+/**
+* @ignore
+*/
 const ProfileOracleBase = Record({
     profile: null
 });
 
+/**
+* @ignore
+*/
 export class ProfileOracle extends ProfileOracleBase {
 
     matcher(identifier, objectType) {
-        identifier = identifier.lower();
-        objectTypes = new Set(objectType ? [objectType] :
-            [&apos;Activity&apos;, &apos;Verb&apos;, &apos;ActivityType&apos;, &apos;AttachmentUsageType&apos;, &apos;Extension&apos;]);
-        return (concept) =&gt; objectTypes.has(concept.type) &amp;&amp;
-            Object.values(concept.prefLabel).some(function(value) {
-                return value.lower() == identifier;
-            });
+        identifier = identifier.toLowerCase();
+        const objectTypes = new Set([objectType]);
+        return (concept) =&gt; {
+            return objectTypes.has(concept.get(&apos;type&apos;)) &amp;&amp; (
+                concept.get(&apos;id&apos;).toLowerCase() == identifier ||
+                concept.get(&apos;prefLabel&apos;).some(function(value) {
+                    return value.toLowerCase() == identifier;
+                }));
+        }
     }
-
-
 
     lookup(identifier, objectType) {
-        const matching = this.profile.concepts.filter(this.matcher(identifier, objectType));
-        if(matching.length == 1) { // only return unambiguous matches
-            return matching[0];
+        const matching = this.profile.get(&apos;lookups&apos;).filter(
+            this.matcher(identifier, objectType));
+        if(matching.count() == 1) { // only return unambiguous matches
+            return matching.get(0).toJS();
         }
-
-    }
-
-    search(query, objectType) {
 
     }
 
     static fromProfile(profile) {
         return new ProfileOracle({
-            profile: fromJS(profile)
+            profile: fromJS({
+                concepts: [], // empty defaults
+                templates: [],
+                patterns: []
+            }).merge(fromJS(profile))
+        }).update(&apos;profile&apos;, (profile) =&gt; {
+            const lookups = new List().concat(
+                profile.get(&quot;concepts&quot;),
+                profile.get(&quot;templates&quot;),
+                profile.get(&quot;patterns&quot;)
+            );
+            return profile.set(&apos;lookups&apos;, lookups);
         });
     }
 }
 
-
+/**
+* @ignore
+*/
 const CompositeOracleBase = Record({
     oracles: OrderedSet()
 });
 
+/**
+* @ignore
+*/
 export class CompositeOracle extends CompositeOracleBase {
 
     add(oracle) {
@@ -121,20 +137,8 @@ export class CompositeOracle extends CompositeOracleBase {
                 return result;
             }
         }
-        // return what?
-    }
-
-    // is this order good (enough)?
-    // if we keep adding profiles in separate oracles... doesn&apos;t
-    // that lead to bad ordering? Create a Profile Oracle that always works the same?
-    // bleh
-    // hmm, instead of just an array some sort of object keyed by source?
-    search(query, objectType) {
-        let results = [];
-        for(let oracle of this.oracles.reverse()) {
-            results = results.concat(oracle.search(query, objectType));
-        }
-        return results;
+        // return something else? raise? Currently the lookup method on
+        // Builders raises if nothing is returned
     }
 }
 </code></pre>

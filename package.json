@@ -8,12 +8,15 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "webpack",
-    "test": "mocha --compilers js:babel-register"
+    "test": "mocha --compilers js:babel-register",
+    "docs": "esdoc",
+    "opendocs": "open ./docs/index.html"
   },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-preset-env": "^1.6.0",
     "babel-register": "^6.24.1",
+    "chai": "^4.1.2",
     "esdoc": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
     "jsverify": "^0.8.2",
@@ -22,6 +25,7 @@
   },
   "dependencies": {
     "immutable": "^3.8.1",
+    "jsonpath": "^0.2.12",
     "lodash": "^4.17.4"
   }
 }

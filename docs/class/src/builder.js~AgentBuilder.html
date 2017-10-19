@@ -33,13 +33,11 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AgentBuilder.html">AgentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~AttachmentBuilder.html">AttachmentBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html">BuilderRecord</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~PatternRegistration.html">PatternRegistration</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~ProfileRegistration.html">ProfileRegistration</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~StatementBuilder.html">StatementBuilder</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~CompositeOracle.html">CompositeOracle</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/oracle.js~ProfileOracle.html">ProfileOracle</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/builder.js~SubStatementBuilder.html">SubStatementBuilder</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-_BuilderRecord">_BuilderRecord</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-CompositeOracleBase">CompositeOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ProfileOracleBase">ProfileOracleBase</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-uriOracle">uriOracle</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-InteractionComponent">InteractionComponent</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-LanguageMap">LanguageMap</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-typedef">T</span><span data-ice="name"><span><a href="typedef/index.html#static-typedef-Verb">Verb</a></span></span></li>
@@ -50,13 +48,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {AgentBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber102">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {AgentBuilder} from &apos;<span><a href="file/src/builder.js.html#lineNumber503">xapi-statement-builder/src/builder.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber102">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/builder.js.html#lineNumber503">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -76,7 +74,12 @@
 
   
   
-  
+  <div class="description" data-ice="description"><p>Use AgentBuilder to make Agents for use in your Statements, though you
+mostly won&apos;t need to use it unless you&apos;re working with Groups. All non-member
+Agents in Statements can be manipulated with StatementBuilder methods.</p>
+<p>When working with Statements you should generally get an AgentBuilder
+instance by the <span><a href="class/src/builder.js~StatementBuilder.html#instance-get-agents">StatementBuilder#agents</a></span> property.</p>
+</div>
   
 
   
@@ -443,13 +446,14 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#static-method-builder">builder</a></span></span><span class="code" data-ice="signature">(value: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>): <span>*</span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Make an instance of a Builder</p>
+</div>
       </div>
     </td>
     <td>
@@ -471,13 +475,15 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-build">build</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Get the plain javascript object from this builder, ready to serialize
+into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -499,69 +505,15 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-lookup">lookup</a></span></span><span class="code" data-ice="signature">(identifier: <span>*</span>, objectType: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-unsafeBuild">unsafeBuild</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-prebuild">prebuild</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/builder.js~BuilderRecord.html#instance-method-validate">validate</a></span></span><span class="code" data-ice="signature">(js: <span>*</span>)</span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
+        <div data-ice="description"><p><em>Without validating</em>, get the plain javascript object from this builder,
+ready to serialize into JSON</p>
+</div>
       </div>
     </td>
     <td>
@@ -588,7 +540,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber114">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber515">source</a></span></span>
     </span>
   </h3>
 
@@ -611,7 +563,7 @@
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">value</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
-      <td data-ice="appendix"><ul><li>nullable: true</li></ul></td>
+      <td data-ice="appendix"><ul><li>optional</li></ul></td>
       <td data-ice="description"><p>A plain javascript Agent or Group.</p>
 </td>
     </tr>
@@ -676,7 +628,7 @@ console.log(builder.build());</code></pre>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber175">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber576">source</a></span></span>
     </span>
   </h3>
 
@@ -734,7 +686,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber243">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber644">source</a></span></span>
     </span>
   </h3>
 
@@ -810,7 +762,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber165">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber566">source</a></span></span>
     </span>
   </h3>
 
@@ -887,7 +839,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber126">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber527">source</a></span></span>
     </span>
   </h3>
 
@@ -962,7 +914,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber149">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber550">source</a></span></span>
     </span>
   </h3>
 
@@ -1038,7 +990,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber212">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber613">source</a></span></span>
     </span>
   </h3>
 
@@ -1113,7 +1065,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber222">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber623">source</a></span></span>
     </span>
   </h3>
 
@@ -1188,7 +1140,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber186">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber587">source</a></span></span>
     </span>
   </h3>
 
@@ -1264,7 +1216,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber137">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber538">source</a></span></span>
     </span>
   </h3>
 
@@ -1339,7 +1291,7 @@ is unmodified.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber232">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/builder.js.html#lineNumber633">source</a></span></span>
     </span>
   </h3>
 
